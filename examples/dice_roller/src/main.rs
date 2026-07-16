@@ -92,11 +92,15 @@ fn roll_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
     use futures::stream::StreamExt;
 
     futures::stream::iter(0..ROLLING_FRAMES).then(|i| async move {
+        animation::let_ui_settle().await;
         let mut buf = [0u8; 3];
         getrandom::fill(&mut buf).expect("entropy source failed");
         animation::mix_entropy(&mut buf);
         let dice = ((buf[0] % 6) + 1, (buf[1] % 6) + 1, (buf[2] % 6) + 1);
-        animation::frame_yield().await;
+        animation::advance().await;
+        if i % 5 == 4 {
+            animation::drain().await;
+        }
         if i + 1 == ROLLING_FRAMES {
             Message::Settled(dice)
         } else {

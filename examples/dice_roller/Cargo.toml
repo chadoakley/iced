@@ -14,3 +14,4 @@ getrandom = "0.3"
 iced.workspace = true
 iced.features = ["webgl"]
 getrandom = { version = "0.3", features = ["wasm_js"] }
+wasm-bindgen-futures = "0.4"
