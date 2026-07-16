@@ -1,3 +1,6 @@
+use std::future::poll_fn;
+use std::task::Poll;
+
 use iced::widget::{button, center, column, text};
 use iced::{Alignment, Element, Task};
 
@@ -14,6 +17,7 @@ struct DiceRoller {
 #[derive(Debug, Clone)]
 enum Message {
     Roll,
+    Rolled((u8, u8, u8)),
 }
 
 impl DiceRoller {
@@ -29,8 +33,8 @@ impl DiceRoller {
 
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::Roll => {
-                let (a, b, c) = futures::executor::block_on(roll_dice());
+            Message::Roll => Task::perform(roll_dice(), Message::Rolled),
+            Message::Rolled((a, b, c)) => {
                 self.dice = Some((a, b, c));
                 self.status = format!("total: {}", a as u32 + b as u32 + c as u32);
                 Task::none()
@@ -59,5 +63,30 @@ impl DiceRoller {
 async fn roll_dice() -> (u8, u8, u8) {
     let mut buf = [0u8; 3];
     getrandom::fill(&mut buf).expect("entropy source failed");
+
+    let mut mixer: u64 = ((buf[0] as u64) << 16) | ((buf[1] as u64) << 8) | (buf[2] as u64);
+    for i in 0..200_000u64 {
+        mixer = mixer.wrapping_mul(1103515245).wrapping_add(12345).wrapping_add(i);
+        cooperative_yield().await;
+    }
+
+    buf[0] = mixer as u8;
+    buf[1] = (mixer >> 8) as u8;
+    buf[2] = (mixer >> 16) as u8;
+
     ((buf[0] % 6) + 1, (buf[1] % 6) + 1, (buf[2] % 6) + 1)
+}
+
+async fn cooperative_yield() {
+    let mut yielded = false;
+    poll_fn(|cx| {
+        if yielded {
+            Poll::Ready(())
+        } else {
+            yielded = true;
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        }
+    })
+    .await
 }
