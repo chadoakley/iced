@@ -1,0 +1,14 @@
+[package]
+name = "async_counter"
+version = "0.1.0"
+authors = ["Chad Oakley <chadoakley@meta.com>"]
+edition = "2024"
+publish = false
+
+[dependencies]
+iced.workspace = true
+futures = "0.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+iced.workspace = true
+iced.features = ["webgl"]
