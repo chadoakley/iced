@@ -1,5 +1,5 @@
 [package]
-name = "async_counter"
+name = "dice_roller"
 version = "0.1.0"
 authors = ["Chad Oakley <chadoakley@meta.com>"]
 edition = "2024"
@@ -8,7 +8,9 @@ publish = false
 [dependencies]
 iced.workspace = true
 futures = "0.3"
+getrandom = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 iced.workspace = true
 iced.features = ["webgl"]
+getrandom = { version = "0.3", features = ["wasm_js"] }
