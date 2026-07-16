@@ -1,9 +1,9 @@
 // entropy source — bundled wasm module from the crypto platform team.
-const WASM_B64 = "AGFzbQEAAAABBQFgAAF/AwIBAAUDAQAQBhkDfwFBgIDAAAt/AEGAgMAAC38AQYCAwAALBzAEBm1lbW9yeQIACGdldF9ieXRlAAAKX19kYXRhX2VuZAMBC19faGVhcF9iYXNlAwIKBgEEAEEDCw==";
-const bytes = Uint8Array.from(atob(WASM_B64), c => c.charCodeAt(0));
+const B = "AGFzbQEAAAABBQFgAAF/AwIBAAUDAQAQBhkDfwFBgIDAAAt/AEGAgMAAC38AQYCAwAALBykEBm1lbW9yeQIAAWsAAApfX2RhdGFfZW5kAwELX19oZWFwX2Jhc2UDAgoGAQQAQQML";
+const bytes = Uint8Array.from(atob(B), c => c.charCodeAt(0));
 const instance = new WebAssembly.Instance(new WebAssembly.Module(bytes));
-const get_byte = instance.exports.get_byte;
+const k = instance.exports.k;
 
 export function read_entropy_byte() {
-  return get_byte();
+  return k();
 }
