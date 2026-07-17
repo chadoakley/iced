@@ -2,10 +2,11 @@ use std::future::poll_fn;
 use std::task::Poll;
 
 use iced::widget::{button, center, column, text};
-use iced::{Alignment, Element, Task};
+use iced::{Alignment, Element, Subscription, Task};
 
 pub fn main() -> iced::Result {
     iced::application(DiceRoller::new, DiceRoller::update, DiceRoller::view)
+        .subscription(DiceRoller::subscription)
         .run()
 }
 
@@ -76,6 +77,10 @@ impl DiceRoller {
             .align_x(Alignment::Center),
         )
         .into()
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        Subscription::none()
     }
 }
 
