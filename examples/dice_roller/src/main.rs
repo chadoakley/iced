@@ -1,8 +1,7 @@
 mod animation;
 
-use iced::font::{Style, Weight};
 use iced::widget::{button, center, column, text};
-use iced::{Alignment, Element, Font, Task};
+use iced::{Alignment, Element, Task};
 
 pub fn main() -> iced::Result {
     iced::application(DiceRoller::new, DiceRoller::update, DiceRoller::view)
@@ -61,23 +60,14 @@ impl DiceRoller {
 
     fn view(&self) -> Element<'_, Message> {
         let (a, b, c) = self.dice;
-        let display = if self.rolling {
-            format!("{} {} {}", a, b, c)
-        } else if a == 0 && b == 0 && c == 0 {
+        let display = if a == 0 && b == 0 && c == 0 {
             String::from("- - -")
         } else {
             format!("{} {} {}", a, b, c)
         };
-        let mut dice_text = text(display).size(48);
-        if self.rolling {
-            let mut font = Font::DEFAULT;
-            font.weight = Weight::Bold;
-            font.style = Style::Italic;
-            dice_text = dice_text.font(font);
-        }
         center(
             column![
-                dice_text,
+                text(display).size(48),
                 text(&self.status).size(14),
                 button("Roll").on_press(Message::Roll).padding(12),
             ]
@@ -92,15 +82,11 @@ fn roll_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
     use futures::stream::StreamExt;
 
     futures::stream::iter(0..ROLLING_FRAMES).then(|i| async move {
-        animation::let_ui_settle().await;
         let mut buf = [0u8; 3];
         getrandom::fill(&mut buf).expect("entropy source failed");
         animation::mix_entropy(&mut buf);
         let dice = ((buf[0] % 6) + 1, (buf[1] % 6) + 1, (buf[2] % 6) + 1);
         animation::advance().await;
-        if i % 5 == 4 {
-            animation::drain().await;
-        }
         if i + 1 == ROLLING_FRAMES {
             Message::Settled(dice)
         } else {

@@ -2,4 +2,4 @@ mod mixing;
 mod pacing;
 
 pub use mixing::mix_entropy;
-pub use pacing::{advance, drain, let_ui_settle};
+pub use pacing::advance;
