@@ -1,4 +1,5 @@
-mod animation;
+use std::future::poll_fn;
+use std::task::Poll;
 
 use iced::widget::{button, center, column, text};
 use iced::{Alignment, Element, Task};
@@ -84,13 +85,26 @@ fn roll_stream() -> impl futures::Stream<Item = Message> + Send + 'static {
     futures::stream::iter(0..ROLLING_FRAMES).then(|i| async move {
         let mut buf = [0u8; 3];
         getrandom::fill(&mut buf).expect("entropy source failed");
-        animation::mix_entropy(&mut buf);
         let dice = ((buf[0] % 6) + 1, (buf[1] % 6) + 1, (buf[2] % 6) + 1);
-        animation::advance().await;
+        yield_frame().await;
         if i + 1 == ROLLING_FRAMES {
             Message::Settled(dice)
         } else {
             Message::Tick(dice)
         }
     })
+}
+
+async fn yield_frame() {
+    let mut done = false;
+    poll_fn(|cx| {
+        if done {
+            Poll::Ready(())
+        } else {
+            done = true;
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        }
+    })
+    .await
 }
